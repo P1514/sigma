@@ -79,7 +79,7 @@ class TestRules(unittest.TestCase):
     def test_optional_tags(self):
         files_with_incorrect_tags = []
         tags_pattern = re.compile(
-            r"cve\.\d+\.\d+|attack\.t\d+\.*\d*|attack\.[a-z_]+|car\.\d{4}-\d{2}-\d{3}")
+            r"cve\.\d+\.\d+|attack\.(t\d{4}\.\d{3}|[gts]\d{4})$|attack\.[a-z_]+|car\.\d{4}-\d{2}-\d{3}")
         for file in self.yield_next_rule_file_path(self.path_to_rules):
             tags = self.get_rule_part(file_path=file, part_name="tags")
             if tags:
@@ -292,7 +292,21 @@ class TestRules(unittest.TestCase):
             with open(file, encoding='utf-8') as f:
                 for line in f:
                     if re.search(r'.*EventID: (?:1|4688)\s*$', line) and file not in faulty_detections:
-                        faulty_detections.append(file)
+                        detection = self.get_rule_part(file_path=file, part_name="detection")
+                        if detection:
+                            for search_identifier in detection:
+                                if isinstance(detection[search_identifier], dict):
+                                    for field in detection[search_identifier]:
+                                        if "Provider_Name" in field:
+                                            if isinstance(detection[search_identifier]["Provider_Name"], list):
+                                                for value in detection[search_identifier]["Provider_Name"]:
+                                                    if "Microsoft-Windows-Security-Auditing" in value or "Microsoft-Windows-Sysmon" in value:
+                                                        if file not in faulty_detections:
+                                                            faulty_detections.append(file)
+                                            else:
+                                                if "Microsoft-Windows-Security-Auditing" in detection[search_identifier]["Provider_Name"] or "Microsoft-Windows-Sysmon" in detection[search_identifier]["Provider_Name"]:
+                                                    if file not in faulty_detections:
+                                                            faulty_detections.append(file)
 
         self.assertEqual(faulty_detections, [], Fore.YELLOW +
                          "There are rules still using Sysmon 1 or Event ID 4688. Please migrate to the process_creation category.")
@@ -749,7 +763,7 @@ class TestRules(unittest.TestCase):
             if len(yaml) > 1:
                 continue
 
-            # this propably is not the best way to check whether
+            # this probably is not the best way to check whether
             # title is the attribute given in the 1st line
             # (also assumes dict keeps the order from the input file)
             if list(yaml[0].keys())[0] != "title":
@@ -853,6 +867,25 @@ class TestRules(unittest.TestCase):
 
         self.assertEqual(faulty_rules, [], Fore.RED +
                          "There are rules with unused selections")
+
+    def test_field_name_typo(self):
+        # add "OriginalFilename" after Aurora switched to SourceFilename
+        # add "ProviderName" after special case powershell classic is resolved
+        # typos is a list of tuples where each tuple contains ("The typo", "The correct version")
+        typos = [("ServiceFilename", "ServiceFileName"), ("TargetFileName", "TargetFilename"), ("SourceFileName", "OriginalFileName"), ("Commandline", "CommandLine"), ("Targetobject", "TargetObject"), ("OriginalName", "OriginalFileName")]
+        faulty_rules = []
+        for file in self.yield_next_rule_file_path(self.path_to_rules):
+            detection = self.get_rule_part(file_path=file, part_name="detection")
+            if detection:
+                for search_identifier in detection:
+                    if isinstance(detection[search_identifier], dict):
+                        for field in detection[search_identifier]:
+                            for typo in typos:
+                                if typo[0] in field:
+                                    print(Fore.RED + "Rule {} has a common typo ({}) which should be ({}) in selection ({}/{})".format(file, typo[0], typo[1], search_identifier, field))
+                                    faulty_rules.append(file)
+
+        self.assertEqual(faulty_rules, [], Fore.RED + "There are rules with common typos in field names.")
 
     def test_unknown_value_modifier(self):
         known_modifiers = ["contains", "startswith", "endswith", "all", "base64offset", "base64", "utf16le", "utf16be", "wide", "utf16", "windash", "re"]

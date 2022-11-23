@@ -41,7 +41,9 @@ logsources:
     product: windows
     service: powershell
     conditions:
-      source: 'WinEventLog:Microsoft-Windows-PowerShell/Operational'
+      source:
+        - 'WinEventLog:Microsoft-Windows-PowerShell/Operational'
+        - 'WinEventLog:PowerShellCore/Operational'
   windows-classicpowershell:
     product: windows
     service: powershell-classic
@@ -154,6 +156,16 @@ logsources:
     service: shell-core
     conditions:
       source: 'WinEventLog:Microsoft-Windows-Shell-Core/Operational'
+  windows-openssh:
+    product: windows
+    service: openssh
+    conditions:
+      source: 'WinEventLog:OpenSSH/Operational'
+  windows-ldap-debug:
+    product: windows
+    service: ldap_debug
+    conditions:
+      source: 'WinEventLog:Microsoft-Windows-LDAP-Client/Debug'
   windows-defender:
     product: windows
     service: windefend

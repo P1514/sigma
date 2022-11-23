@@ -120,4 +120,14 @@ logsources:
     service: shell-core
     conditions:
       Channel: 'Microsoft-Windows-Shell-Core/Operational'
+  windows-openssh:
+    product: windows
+    service: openssh
+    conditions:
+      Channel: 'OpenSSH/Operational'
+  windows-ldap-debug:
+    product: windows
+    service: ldap_debug
+    conditions:
+      Channel: 'Microsoft-Windows-LDAP-Client/Debug'
 defaultindex: logstash-*

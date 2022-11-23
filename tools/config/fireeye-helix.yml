@@ -102,7 +102,9 @@ logsources:
         index: windows
         service: powershell
         conditions:
-            channel: 'Microsoft-Windows-Powershell'
+            channel:
+            - 'Microsoft-Windows-Powershell'
+            - 'PowerShellCore'
     windows-bits-client:
         product: windows
         service: bits-client
@@ -125,6 +127,16 @@ logsources:
         service: shell-core
         conditions:
             channel: 'Microsoft-Windows-Shell-Core/Operational'
+    windows-openssh:
+        product: windows
+        service: openssh
+        conditions:
+            channel: 'OpenSSH/Operational'
+    windows-ldap-debug:
+        product: windows
+        service: ldap_debug
+        conditions:
+            channel: 'Microsoft-Windows-LDAP-Client/Debug'
     linux:
         product: linux
         index: posix

@@ -5,7 +5,6 @@ related:
       type: derived
 status: experimental
 description: Detects the load of known vulnerable drivers via their names only.
-author: Nasreddine Bencherchali
 references:
     - https://github.com/eclypsium/Screwed-Drivers/blob/master/DRIVERS.md
     - https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-application-control/microsoft-recommended-driver-block-rules
@@ -18,8 +17,10 @@ references:
     - https://github.com/Chigusa0w0/AsusDriversPrivEscala
     - https://www.welivesecurity.com/2022/01/11/signed-kernel-drivers-unguarded-gateway-windows-core/
     - https://eclypsium.com/2019/11/12/mother-of-all-drivers/
+    - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-37969
+author: Nasreddine Bencherchali
 date: 2022/10/03
-modified: 2022/10/10
+modified: 2022/10/17
 tags:
     - attack.privilege_escalation
     - attack.t1543.003
@@ -185,6 +186,7 @@ detection:
             # Other
             - '\gmer.sys'
             - '\PCADRVX64.sys'
+            - '\clfs.sys'
             # WinRing0 other names from VT (https://eclypsium.com/2019/11/12/mother-of-all-drivers/)
             - '\ActiveHealth.sys'
             - '\CAM_V3.sys'
