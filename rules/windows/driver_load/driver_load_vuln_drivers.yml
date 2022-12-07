@@ -2,7 +2,6 @@ title: Vulnerable Driver Load
 id: 7aaaf4b8-e47c-4295-92ee-6ed40a6f60c8
 status: experimental
 description: Detects the load of known vulnerable drivers by hash value
-author: Nasreddine Bencherchali
 references:
     - https://github.com/eclypsium/Screwed-Drivers/blob/master/DRIVERS.md
     - https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-application-control/microsoft-recommended-driver-block-rules
@@ -19,8 +18,13 @@ references:
     - https://www.unknowncheats.me/forum/downloads.php?do=file&id=21780
     - https://www.rapid7.com/db/modules/exploit/windows/local/razer_zwopenprocess/
     - https://www.unknowncheats.me/forum/downloads.php?do=file&id=25444
+    - https://www.zscaler.com/blogs/security-research/technical-analysis-windows-clfs-zero-day-vulnerability-cve-2022-37969-part
+author: Nasreddine Bencherchali
 date: 2022/08/18
-modified: 2022/10/10
+modified: 2022/11/29
+tags:
+    - attack.privilege_escalation
+    - attack.t1543.003
 logsource:
     product: windows
     category: driver_load
@@ -280,6 +284,16 @@ detection:
             - 'SHA1=d0a228ed8af190dec0c1a812e212f5e68ee3b43e'
             - 'SHA1=7d2fc1a6729521e5c76f659e4c398e2061f7ed5e'
             - 'SHA1=f999709e5b00a68a0f4fa912619fe6548ad0c42d'
+            # Vuln driver version obtained from: https://www.zscaler.com/blogs/security-research/technical-analysis-windows-clfs-zero-day-vulnerability-cve-2022-37969-part
+            # Version hash obtained from: https://winbindex.m417z.com/?arch=&file=clfs.sys
+            - 'SHA1=06232f7ea7ea24102d452427aedbbc8b8e188a0c'
+            # Powertool Drivers obtained from VT by pivoting on the Imphash: f5030145594c486434040aa2636a5dde
+            - 'SHA1=a380aeb3ffaecc53ca48bb1d4d622c46f1de7962'
+            - 'SHA1=4927d843577bada119a17b249ff4e7f5e9983a92'
+            - 'SHA1=e5114fd50904c7fb75d8c86367b9a2dd4f79dfb1'
+            - 'SHA1=3ccf1f3ac636a5e21b39ede48ff49fa23e05413f'
+            - 'SHA1=755349d56cdd668ca22eebc4fc89f0cccef47327'
+            - 'SHA1=56af49e030eb85528e82849d7d1b6147f3c4973e'
             # The list below is from https://github.com/namazso/physmem_drivers
             - 'SHA256=05F052C64D192CF69A462A5EC16DDA0D43CA5D0245900C9FCB9201685A2E7748'
             - 'SHA256=4045AE77859B1DBF13972451972EAAF6F3C97BEA423E9E78F1C2F14330CD47CA'
@@ -530,6 +544,16 @@ detection:
             - 'SHA256=1d053020079124ac526d84affb17bf4a1563ecd872c83b4b6299c9aa6a732557'
             - 'SHA256=c059f1b2b73ecab48d62f469d48dbde74a80c4ada07f0bd3b417ec4e044fb522'
             - 'SHA256=a66d2fb7ef7350ea74d4290c57fb62bc59c6ea93f759d4ca93c3febca7aeb512'
+            # Vuln driver version obtained from: https://www.zscaler.com/blogs/security-research/technical-analysis-windows-clfs-zero-day-vulnerability-cve-2022-37969-part
+            # Version hash obtained from: https://winbindex.m417z.com/?arch=&file=clfs.sys
+            - 'SHA256=5d712d3fad791bdc67502ed7c6586ca39d12ae26c7b245c36effec92e3cda08e'
+            # Powertool Drivers obtained from VT by pivoting on the Imphash: f5030145594c486434040aa2636a5dde
+            - 'SHA256=e61004335dfe7349f2b2252baa1e111fb47c0f2d6c78a060502b6fcc92f801e4'
+            - 'SHA256=7c0f77d103015fc29379ba75d133dc3450d557b0ba1f7495c6b43447abdae230'
+            - 'SHA256=97363f377aaf3c01641ac04a15714acbec978afb1219ac8f22c7e5df7f2b2d56'
+            - 'SHA256=8e6363a6393eb4234667c6f614b2072e33512866b3204f8395bbe01530d63f2f'
+            - 'SHA256=09b0e07af8b17db1d896b78da4dd3f55db76738ee1f4ced083a97d737334a184'
+            - 'SHA256=2a4f4400402cdc475d39389645ca825bb0e775c3ecb7c527e30c5be44e24af7d'
     selection_other:
         - SHA1:
             # The list below is from https://github.com/namazso/physmem_drivers and the SHA1 are from VT
@@ -785,6 +809,16 @@ detection:
             - 'd0a228ed8af190dec0c1a812e212f5e68ee3b43e'
             - '7d2fc1a6729521e5c76f659e4c398e2061f7ed5e'
             - 'f999709e5b00a68a0f4fa912619fe6548ad0c42d'
+            # Vuln driver version obtained from: https://www.zscaler.com/blogs/security-research/technical-analysis-windows-clfs-zero-day-vulnerability-cve-2022-37969-part
+            # Version hash obtained from: https://winbindex.m417z.com/?arch=&file=clfs.sys
+            - '06232f7ea7ea24102d452427aedbbc8b8e188a0c'
+            # Powertool Drivers obtained from VT by pivoting on the Imphash: f5030145594c486434040aa2636a5dde
+            - 'a380aeb3ffaecc53ca48bb1d4d622c46f1de7962'
+            - '4927d843577bada119a17b249ff4e7f5e9983a92'
+            - 'e5114fd50904c7fb75d8c86367b9a2dd4f79dfb1'
+            - '3ccf1f3ac636a5e21b39ede48ff49fa23e05413f'
+            - '755349d56cdd668ca22eebc4fc89f0cccef47327'
+            - '56af49e030eb85528e82849d7d1b6147f3c4973e'
         - SHA256:
             # The list below is from https://github.com/namazso/physmem_drivers
             - '04A85E359525D662338CAE86C1E59B1D7AA9BD12B920E8067503723DC1E03162'
@@ -851,8 +885,6 @@ detection:
             - 'DB90E554AD249C2BD888282ECF7D8DA4D1538DD364129A3327B54F8242DD5653'
             - 'E61A54F6D3869B43C4ECEAC3016DF73DF67CCE03878C5A6167166601C5D3F028'
             - '3871E16758A1778907667F78589359734F7F62F9DC953EC558946DCDBE6951E3'
-            - 'DED2927F9A4E64EEFD09D0CABA78E94F309E3A6292841AE81D5528CAB109F95D'
-            - '0296E2CE999E67C76352613A718E11516FE1B0EFC3FFDB8918FC999DD76A73A5'
             - '80CBBA9F404DF3E642F22C476664D63D7C229D45D34F5CD0E19C65EB41BECEC3'
             - 'BB50818A07B0EB1BD317467139B7EB4BAD6CD89053FECDABFEAE111689825955'
             - 'FF6729518A380BF57F1BC6F1EC0AA7F3012E1618B8D9B0F31A61D299EE2B4339'
@@ -1045,10 +1077,17 @@ detection:
             - '1d053020079124ac526d84affb17bf4a1563ecd872c83b4b6299c9aa6a732557'
             - 'c059f1b2b73ecab48d62f469d48dbde74a80c4ada07f0bd3b417ec4e044fb522'
             - 'a66d2fb7ef7350ea74d4290c57fb62bc59c6ea93f759d4ca93c3febca7aeb512'
+            # Vuln driver version obtained from: https://www.zscaler.com/blogs/security-research/technical-analysis-windows-clfs-zero-day-vulnerability-cve-2022-37969-part
+            # Version hash obtained from: https://winbindex.m417z.com/?arch=&file=clfs.sys
+            - '5d712d3fad791bdc67502ed7c6586ca39d12ae26c7b245c36effec92e3cda08e'
+            # Powertool Drivers obtained from VT by pivoting on the Imphash: f5030145594c486434040aa2636a5dde
+            - 'e61004335dfe7349f2b2252baa1e111fb47c0f2d6c78a060502b6fcc92f801e4'
+            - '7c0f77d103015fc29379ba75d133dc3450d557b0ba1f7495c6b43447abdae230'
+            - '97363f377aaf3c01641ac04a15714acbec978afb1219ac8f22c7e5df7f2b2d56'
+            - '8e6363a6393eb4234667c6f614b2072e33512866b3204f8395bbe01530d63f2f'
+            - '09b0e07af8b17db1d896b78da4dd3f55db76738ee1f4ced083a97d737334a184'
+            - '2a4f4400402cdc475d39389645ca825bb0e775c3ecb7c527e30c5be44e24af7d'
     condition: 1 of selection*
 falsepositives:
     - Unknown
 level: high
-tags:
-    - attack.privilege_escalation
-    - attack.t1543.003

@@ -13,6 +13,7 @@ import re
 from attackcti import attack_client
 from colorama import init
 from colorama import Fore
+import collections
 
 
 class TestRules(unittest.TestCase):
@@ -79,7 +80,7 @@ class TestRules(unittest.TestCase):
     def test_optional_tags(self):
         files_with_incorrect_tags = []
         tags_pattern = re.compile(
-            r"cve\.\d+\.\d+|attack\.t\d+\.*\d*|attack\.[a-z_]+|car\.\d{4}-\d{2}-\d{3}")
+            r"cve\.\d+\.\d+|attack\.(t\d{4}\.\d{3}|[gts]\d{4})$|attack\.[a-z_]+|car\.\d{4}-\d{2}-\d{3}")
         for file in self.yield_next_rule_file_path(self.path_to_rules):
             tags = self.get_rule_part(file_path=file, part_name="tags")
             if tags:
@@ -126,23 +127,35 @@ class TestRules(unittest.TestCase):
                          "There are rules with duplicate tags")
 
     def test_look_for_duplicate_filters(self):
-        def check_list_or_recurse_on_dict(item, depth: int) -> None:
+        def check_list_or_recurse_on_dict(item, depth: int, special: bool) -> None:
             if type(item) == list:
-                check_if_list_contain_duplicates(item, depth)
+                check_if_list_contain_duplicates(item, depth, special)
             elif type(item) == dict and depth <= MAX_DEPTH:
-                for sub_item in item.values():
-                    check_list_or_recurse_on_dict(sub_item, depth + 1)
+                for keys, sub_item in item.items():
+                    if "|base64" in keys: # Covers both "base64" and "base64offset" modifiers
+                        check_list_or_recurse_on_dict(sub_item, depth + 1, True)
+                    else:
+                        check_list_or_recurse_on_dict(sub_item, depth + 1, special)
 
-        def check_if_list_contain_duplicates(item: list, depth: int) -> None:
+        def check_if_list_contain_duplicates(item: list, depth: int, special: bool) -> None:
             try:
-                if len(item) != len(set(item)):
-                    print(Fore.RED + "Rule {} has duplicate filters".format(file))
+                # We use a list comprehension to convert all the element to lowercase. Since we don't care about casing in SIGMA except for the following modifiers
+                #   - "base64offset"
+                #   - "base64"
+                if special:
+                    item_ = item
+                else:
+                    item_= [i.lower() for i in item]
+                if len(item_) != len(set(item_)):
+                    # We find the duplicates and then print them to the user
+                    duplicates = [i for i, count in collections.Counter(item_).items() if count > 1]
+                    print(Fore.RED + "Rule {} has duplicate filters {}".format(file, duplicates))
                     files_with_duplicate_filters.append(file)
             except:
                 # unhashable types like dictionaries
                 for sub_item in item:
                     if type(sub_item) == dict and depth <= MAX_DEPTH:
-                        check_list_or_recurse_on_dict(sub_item, depth + 1)
+                        check_list_or_recurse_on_dict(sub_item, depth + 1, special)
 
         MAX_DEPTH = 3
         files_with_duplicate_filters = []
@@ -150,7 +163,7 @@ class TestRules(unittest.TestCase):
         for file in self.yield_next_rule_file_path(self.path_to_rules):
             detection = self.get_rule_part(
                 file_path=file, part_name="detection")
-            check_list_or_recurse_on_dict(detection, 1)
+            check_list_or_recurse_on_dict(detection, 1, False)
 
         self.assertEqual(files_with_duplicate_filters, [], Fore.RED +
                          "There are rules with duplicate filters")
@@ -292,7 +305,21 @@ class TestRules(unittest.TestCase):
             with open(file, encoding='utf-8') as f:
                 for line in f:
                     if re.search(r'.*EventID: (?:1|4688)\s*$', line) and file not in faulty_detections:
-                        faulty_detections.append(file)
+                        detection = self.get_rule_part(file_path=file, part_name="detection")
+                        if detection:
+                            for search_identifier in detection:
+                                if isinstance(detection[search_identifier], dict):
+                                    for field in detection[search_identifier]:
+                                        if "Provider_Name" in field:
+                                            if isinstance(detection[search_identifier]["Provider_Name"], list):
+                                                for value in detection[search_identifier]["Provider_Name"]:
+                                                    if "Microsoft-Windows-Security-Auditing" in value or "Microsoft-Windows-Sysmon" in value:
+                                                        if file not in faulty_detections:
+                                                            faulty_detections.append(file)
+                                            else:
+                                                if "Microsoft-Windows-Security-Auditing" in detection[search_identifier]["Provider_Name"] or "Microsoft-Windows-Sysmon" in detection[search_identifier]["Provider_Name"]:
+                                                    if file not in faulty_detections:
+                                                            faulty_detections.append(file)
 
         self.assertEqual(faulty_detections, [], Fore.YELLOW +
                          "There are rules still using Sysmon 1 or Event ID 4688. Please migrate to the process_creation category.")
@@ -309,12 +336,12 @@ class TestRules(unittest.TestCase):
                 print(
                     Fore.YELLOW + "Rule {} has a malformed 'id' (not 36 chars).".format(file))
                 faulty_rules.append(file)
-            elif id in dict_id.keys():
+            elif id.lower() in dict_id.keys():
                 print(
                     Fore.YELLOW + "Rule {} has the same 'id' than {} must be unique.".format(file, dict_id[id]))
                 faulty_rules.append(file)
             else:
-                dict_id[id] = file
+                dict_id[id.lower()] = file
 
         self.assertEqual(faulty_rules, [], Fore.RED +
                          "There are rules with missing or malformed 'id' fields. Create an id (e.g. here: https://www.uuidgenerator.net/version4) and add it to the reported rule(s).")
@@ -645,6 +672,25 @@ class TestRules(unittest.TestCase):
         self.assertEqual(faulty_rules, [], Fore.RED +
                          "There are rules with malformed 'references' fields. (has to be a list of values even if it contains only a single value)")
 
+    def test_references_in_description(self):
+        # This test checks for the presence of a links and special keywords in the "description" field while there is no "references" field.
+        faulty_rules = []
+        for file in self.yield_next_rule_file_path(self.path_to_rules):
+            references = self.get_rule_part(
+                file_path=file, part_name="references")
+            # Reference field doesn't exist
+            if not references:
+                descriptionfield = self.get_rule_part(
+                    file_path=file, part_name="description")
+                if descriptionfield:
+                    for i in ["http://", "https://", "internal research"]: # Extends the list with other common references starters
+                        if i in descriptionfield.lower():
+                            print(Fore.RED + "Rule {} has a field that contains references to external links but no references set. Add a 'references' key and add URLs as list items.".format(file))
+                            faulty_rules.append(file)
+
+        self.assertEqual(faulty_rules, [], Fore.RED +
+                         "There are rules with malformed 'description' fields. (links and external references have to be in a seperate field named 'references'. see specification https://github.com/SigmaHQ/sigma-specification)")
+
     def test_references_plural(self):
         faulty_rules = []
         for file in self.yield_next_rule_file_path(self.path_to_rules):
@@ -749,7 +795,7 @@ class TestRules(unittest.TestCase):
             if len(yaml) > 1:
                 continue
 
-            # this propably is not the best way to check whether
+            # this probably is not the best way to check whether
             # title is the attribute given in the 1st line
             # (also assumes dict keeps the order from the input file)
             if list(yaml[0].keys())[0] != "title":
@@ -853,6 +899,25 @@ class TestRules(unittest.TestCase):
 
         self.assertEqual(faulty_rules, [], Fore.RED +
                          "There are rules with unused selections")
+
+    def test_field_name_typo(self):
+        # add "OriginalFilename" after Aurora switched to SourceFilename
+        # add "ProviderName" after special case powershell classic is resolved
+        # typos is a list of tuples where each tuple contains ("The typo", "The correct version")
+        typos = [("ServiceFilename", "ServiceFileName"), ("TargetFileName", "TargetFilename"), ("SourceFileName", "OriginalFileName"), ("Commandline", "CommandLine"), ("Targetobject", "TargetObject"), ("OriginalName", "OriginalFileName")]
+        faulty_rules = []
+        for file in self.yield_next_rule_file_path(self.path_to_rules):
+            detection = self.get_rule_part(file_path=file, part_name="detection")
+            if detection:
+                for search_identifier in detection:
+                    if isinstance(detection[search_identifier], dict):
+                        for field in detection[search_identifier]:
+                            for typo in typos:
+                                if typo[0] in field:
+                                    print(Fore.RED + "Rule {} has a common typo ({}) which should be ({}) in selection ({}/{})".format(file, typo[0], typo[1], search_identifier, field))
+                                    faulty_rules.append(file)
+
+        self.assertEqual(faulty_rules, [], Fore.RED + "There are rules with common typos in field names.")
 
     def test_unknown_value_modifier(self):
         known_modifiers = ["contains", "startswith", "endswith", "all", "base64offset", "base64", "utf16le", "utf16be", "wide", "utf16", "windash", "re"]

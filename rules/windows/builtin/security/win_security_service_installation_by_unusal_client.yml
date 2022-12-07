@@ -10,20 +10,21 @@ references:
     - https://twitter.com/SBousseaden/status/1490608838701166596
 author: Tim Rauch
 date: 2022/09/15
+modified: 2022/12/04
+tags:
+    - attack.privilege_escalation
+    - attack.t1543
 logsource:
     category: security
     product: windows
     definition: The 'System Security Extension' audit subcategory need to be enabled to log the EID 4697
-tags:
-    - attack.privilege_escalation
-    - attack.t1543
 detection:
     selection:
         EventID: 4697
     selection_pid:
-        - ClientProcessId: '0'
-        - ParentProcessId: '0'
+        - ClientProcessId: 0
+        - ParentProcessId: 0
     condition: all of selection*
 falsepositives:
-     - Unknown
+    - Unknown
 level: high
