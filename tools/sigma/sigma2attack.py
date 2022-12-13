@@ -57,7 +57,7 @@ def main():
                         num_rules_no_tags += 1
                     double = True # action globle no tag
                     continue
-               if not rule["properties"]["enabled"] :
+                if not rule["properties"]["enabled"] :
                     sys.stderr.write(f"Ignoring rule {rule_file} (disabled)\n")
                     num_rules_no_tags += 1
                     continue
