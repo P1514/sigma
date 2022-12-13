@@ -16,13 +16,13 @@ level_eq = {
     #"critical"      : 5
     }
 
-#status_eq = {
-#    "unsupported"   : 1,
-#    "deprecated"    : 2,
-#    "experimental"  : 3,
-#    "test"          : 4,
-#    "stable"        : 5
-#        }
+status_eq = {
+    "unsupported"   : 1,
+    "deprecated"    : 2,
+    "experimental"  : 3,
+    "test"          : 4,
+    "stable"        : 5
+        }
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
