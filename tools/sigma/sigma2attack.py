@@ -62,7 +62,7 @@ def main():
                     num_rules_no_tags += 1
                     continue
 		
-               if rule["properties"]["displayName"]:
+                if rule["properties"]["displayName"]:
                 #if not "status" in rule:
                 #    status_name = "experimental"
                 #else:
