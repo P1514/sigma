@@ -123,9 +123,9 @@ def main():
     output = {
         "name": "Sigma rules heatmap",
         "versions": {
-            "attack": "10",
+            "attack": "12",
             "navigator": "4.4.4",
-            "layer": "4.2"
+            "layer": "4.4"
         },
         "domain": "enterprise-attack",
         "description": "Sigma rules heatmap",
