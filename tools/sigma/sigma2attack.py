@@ -80,7 +80,7 @@ def main():
                     sys.stderr.write(f"Ignoring rule {rule_file} filter status : {status_name}\n")
                     continue
                 tags = rule["properties"]["techniques"]
-		if tags in None:
+                if tags is None:
                     continue		
                 try:
                     level = rule["properties"]["severity"]
