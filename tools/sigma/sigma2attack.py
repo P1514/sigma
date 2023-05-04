@@ -9,10 +9,10 @@ import sys
 import yaml
 
 level_eq = {
-    "Informational" : 1,
-    "Low"           : 2,
-    "Medium"        : 4,
-    "High"          : 5
+    "informational" : 1,
+    "low"           : 2,
+    "medium"        : 4,
+    "high"          : 5
     #"critical"      : 5
     }
 
@@ -83,7 +83,7 @@ def main():
                 if tags is None:
                     continue		
                 try:
-                    level = rule["properties"]["severity"]
+                    level = lower(rule["properties"]["severity"])
                 except:
                     print(f'No Severity found {rule_file}')
                     continue
