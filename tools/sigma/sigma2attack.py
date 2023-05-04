@@ -81,17 +81,18 @@ def main():
                     continue
                 tags = rule["properties"]["techniques"]
                 if tags is None:
+                    sys.stderr.write(f"Ignoring rule {rule_file} no Techniques in {tags} \n")
+                    num_rules_no_techniques += 1
                     continue		
                 try:
-                    level = lower(rule["properties"]["severity"])
+                    level = rule["properties"]["severity"]
+                    print (level)
                 except:
                     print(f'No Severity found {rule_file}')
                     continue
 
                 double = True
-                t_tags = False
                 for tag in tags:
-                    t_tags = True
                     technique_id = tag
                     num_rules_used += 1
                     if technique_id not in techniques_to_rules:
@@ -103,9 +104,7 @@ def main():
                         curr_max_technique_count = max(curr_max_technique_count, sum(score_to_rules[technique_id]))
                     else:
                         curr_max_technique_count = max(curr_max_technique_count, len(techniques_to_rules[technique_id]))
-                if t_tags == False:
-                    sys.stderr.write(f"Ignoring rule {rule_file} no Techniques in {tags} \n")
-                    num_rules_no_techniques += 1
+                    
 
     scores = []
     for technique in techniques_to_rules:
