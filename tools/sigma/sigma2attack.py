@@ -84,12 +84,12 @@ def main():
                     sys.stderr.write(f"Ignoring rule {rule_file} no Techniques in {tags} \n")
                     num_rules_no_techniques += 1
                     continue		
-                try:
-                    level = rule["properties"]["severity"]
-                    print (level)
-                except:
-                    print(f'No Severity found {rule_file}')
-                    continue
+              #  try:
+                level = rule["properties"]["severity"]
+                print (level)
+               # except:
+                   # print(f'No Severity found {rule_file}')
+                #    continue
 
                 double = True
                 for tag in tags:
