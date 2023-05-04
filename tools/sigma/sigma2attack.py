@@ -85,8 +85,7 @@ def main():
                     num_rules_no_techniques += 1
                     continue		
               #  try:
-                level = rule["properties"]["severity"]
-                print (level)
+                level = lower(rule["properties"]["severity"])
                # except:
                    # print(f'No Severity found {rule_file}')
                 #    continue
